@@ -1,7 +1,7 @@
 
 from telebot import types
-from .api import get_upcoming_matches, get_furia_teams, get_player_stats, get_last_matches
-from .openai_api import perguntar_openai
+from .pandascore_api import get_upcoming_matches, get_furia_teams, get_player_stats, get_last_matches
+from .deepseek_api import is_pergunta_sobre_cs2, perguntar_deepseek
 from dotenv import load_dotenv
 from dateutil import parser
 import pytz
@@ -11,6 +11,20 @@ tz = pytz.timezone('America/Sao_Paulo')
  
 
 def registrar_handlers(bot):
+#COMANDO START
+    @bot.message_handler(commands=['start', 'help', 'inicio'])
+    def responder(msg):
+        texto = (
+            "🔥 Fala! Eu sou o *Bot da FURIA CS2*!\nAqui você encontra informações de todas as line-ups!\n\n"
+            "Escolha uma opção:\n"
+            "/partidas – ver as próximas partidas.\n"
+            "/elenco – elencos atuais.\n"
+            "/historico – ultimas 5 partidas jogadas.\n"
+            "/pergunta - tire suas dúvidas com o bot!"
+        )
+        bot.send_message(msg.chat.id, texto)
+
+#COMANDO PARTIDAS
     @bot.message_handler(commands=['partidas'])
     def partidas(msg):
         partidas = get_upcoming_matches()
@@ -31,18 +45,7 @@ def registrar_handlers(bot):
 
         bot.send_message(msg.chat.id, texto, parse_mode="Markdown")
 
-    @bot.message_handler(commands=['start', 'help', 'inicio'])
-    def responder(msg):
-        texto = (
-            "🔥 Fala! Eu sou o *Bot da FURIA CS2*!\nAqui você encontra informações de todas as line-ups!\n\n"
-            "Escolha uma opção:\n"
-            "/partidas – ver as próximas partidas.\n"
-            "/elenco – elencos atuais.\n"
-            "/historico – ultimas 5 partidas jogadas.\n"
-            "/pergunta - tire suas dúvidas com o bot!"
-        )
-        bot.send_message(msg.chat.id, texto)
-
+#COMANDO ELENCO
     @bot.message_handler(commands=['elenco', 'Elenco'])
     def elenco(msg):
         times = get_furia_teams()
@@ -61,11 +64,7 @@ def registrar_handlers(bot):
 
         bot.send_message(msg.chat.id, texto, parse_mode="Markdown")
 
-#    @bot.message_handler(commands=['Estatistica'])
-#   def estatistica(msg):
-#        texto = "Digite o nome de um jogador após o comando. Ex: `/Estatistica yuurih`"
-#        bot.send_message(msg.chat.id, texto, parse_mode="Markdown")
-
+#COMANDO HISTORICO
     @bot.message_handler(commands=['historico', 'Historico', 'Histórico', 'histórico'])
     def historico(msg):
         partidas = get_last_matches()
@@ -85,14 +84,64 @@ def registrar_handlers(bot):
 
         bot.send_message(msg.chat.id, texto, parse_mode="Markdown")
 
-    @bot.message_handler(commands=['pergunta', "Pergunta", 'perguntas', 'Perguntas'])
-    def perguntar(msg):
-        pergunta = msg.text.replace("pergunta").strip()
+#COMANDO PERGUNTA (DEEPSEEKAI)
+    def obter_contexto_furia():
+        """Busca dados da PandaScore para usar como contexto."""
+        contexto = ""
+    
+        # Adiciona próximas partidas
+        partidas = get_upcoming_matches()
+        if partidas:
+            contexto += "Próximas partidas da FURIA:\n"
+            for p in partidas[:3]:  # Limita a 3 partidas
+                contexto += f"- {p['opponents'][0]['opponent']['name']} vs {p['opponents'][1]['opponent']['name']}\n"
+    
+        # Adiciona elenco
+        times = get_furia_teams()
+        if times and times[0]['players']:
+            contexto += "\nElenco atual:\n"
+            for jogador in times[0]['players']:
+                contexto += f"- {jogador['name']}\n"
+    
+        return contexto
+
+
+    @bot.message_handler(commands=['pergunta'])
+    def pergunta(msg):
+        pergunta = msg.text.replace("/pergunta", "").strip()
+    
         if not pergunta:
-            bot.send_message(msg.chat.id, "Digite sua pergunta após o comando.\n(Ex: /pergunta Qual a maior org de e-sports no Brasil?)")
-            return
-        resposta = perguntar_openai(pergunta)
+            return bot.send_message(msg.chat.id, "❓ Digite sua pergunta. Ex: /pergunta Qual o time mais forte do CS2?")
+    
+        # Busca contexto apenas se for sobre CS2/FURIA
+        contexto = ""
+        palavras_chave = ["furia", "cs2", "csgo", "jogo", "partida", "elenco", "estatística"]
+        if any(palavra in pergunta.lower() for palavra in palavras_chave):
+            # Adiciona próximas partidas ao contexto
+            partidas = get_upcoming_matches()
+            if partidas:
+                contexto += "Próximas partidas da FURIA:\n"
+                for p in partidas[:3]:  # Limita a 3 partidas
+                    contexto += f"- {p['opponents'][0]['opponent']['name']} vs {p['opponents'][1]['opponent']['name']}\n"
+        
+            # Adiciona elenco ao contexto
+            times = get_furia_teams()
+            if times and times[0]['players']:
+                contexto += "\nElenco atual:\n"
+                for jogador in times[0]['players']:
+                    contexto += f"- {jogador['name']}\n"
+    
+    # Chama a DeepSeek
+        resposta = perguntar_deepseek(pergunta, contexto)
         bot.send_message(msg.chat.id, resposta)
+
+        print(pergunta)
+        print(is_pergunta_sobre_cs2(pergunta))
+
+#    @bot.message_handler(commands=['Estatistica'])
+#   def estatistica(msg):
+#        texto = "Digite o nome de um jogador após o comando. Ex: `/Estatistica yuurih`"
+#        bot.send_message(msg.chat.id, texto, parse_mode="Markdown")
 
     # @bot.message_handler(func=lambda m: m.text.startswith('/Estatistica '))
     # def estat_jogador(msg):
