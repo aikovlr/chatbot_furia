@@ -1,6 +1,8 @@
 pyTelegramBotAPI
 requests
-openai
+selenium
+BeautifulSoup4
 python-dotenv
 python-dateutil
 pytz
+pandas

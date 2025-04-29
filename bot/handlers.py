@@ -1,7 +1,6 @@
-
 from telebot import types
-from .pandascore_api import get_upcoming_matches, get_furia_teams, get_player_stats, get_last_matches
-from .deepseek_api import is_pergunta_sobre_cs2, perguntar_deepseek
+from .pandascore_api import get_upcoming_matches, get_furia_teams, get_last_matches
+from bot.bo3_scraper import fetch_team_stats
 from dotenv import load_dotenv
 from dateutil import parser
 import pytz
@@ -19,8 +18,8 @@ def registrar_handlers(bot):
             "Escolha uma opção:\n"
             "/partidas – ver as próximas partidas.\n"
             "/elenco – elencos atuais.\n"
-            "/historico – ultimas 5 partidas jogadas.\n"
-            "/pergunta - tire suas dúvidas com o bot!"
+            "/historico – ultimas 5 partidas jogadas."
+            "/stats - (em desenvolvimento...)"
         )
         bot.send_message(msg.chat.id, texto)
 
@@ -83,68 +82,20 @@ def registrar_handlers(bot):
             texto += f"🏆({partida["league"]['name']} {partida['serie']['full_name']})\n📅 {data_formatada}\n{time1['name']} {resultado1['score']} 🆚 {resultado2['score']} {time2['name']}\n\n"
 
         bot.send_message(msg.chat.id, texto, parse_mode="Markdown")
-
-#COMANDO PERGUNTA (DEEPSEEKAI)
-    def obter_contexto_furia():
-        """Busca dados da PandaScore para usar como contexto."""
-        contexto = ""
     
-        # Adiciona próximas partidas
-        partidas = get_upcoming_matches()
-        if partidas:
-            contexto += "Próximas partidas da FURIA:\n"
-            for p in partidas[:3]:  # Limita a 3 partidas
-                contexto += f"- {p['opponents'][0]['opponent']['name']} vs {p['opponents'][1]['opponent']['name']}\n"
     
-        # Adiciona elenco
-        times = get_furia_teams()
-        if times and times[0]['players']:
-            contexto += "\nElenco atual:\n"
-            for jogador in times[0]['players']:
-                contexto += f"- {jogador['name']}\n"
-    
-        return contexto
-
-
-    @bot.message_handler(commands=['pergunta'])
-    def pergunta(msg):
-        pergunta = msg.text.replace("/pergunta", "").strip()
-    
-        if not pergunta:
-            return bot.send_message(msg.chat.id, "❓ Digite sua pergunta. Ex: /pergunta Qual o time mais forte do CS2?")
-    
-        # Busca contexto apenas se for sobre CS2/FURIA
-        contexto = ""
-        palavras_chave = ["furia", "cs2", "csgo", "jogo", "partida", "elenco", "estatística"]
-        if any(palavra in pergunta.lower() for palavra in palavras_chave):
-            # Adiciona próximas partidas ao contexto
-            partidas = get_upcoming_matches()
-            if partidas:
-                contexto += "Próximas partidas da FURIA:\n"
-                for p in partidas[:3]:  # Limita a 3 partidas
-                    contexto += f"- {p['opponents'][0]['opponent']['name']} vs {p['opponents'][1]['opponent']['name']}\n"
-        
-            # Adiciona elenco ao contexto
-            times = get_furia_teams()
-            if times and times[0]['players']:
-                contexto += "\nElenco atual:\n"
-                for jogador in times[0]['players']:
-                    contexto += f"- {jogador['name']}\n"
-    
-    # Chama a DeepSeek
-        resposta = perguntar_deepseek(pergunta, contexto)
-        bot.send_message(msg.chat.id, resposta)
-
-        print(pergunta)
-        print(is_pergunta_sobre_cs2(pergunta))
-
-#    @bot.message_handler(commands=['Estatistica'])
-#   def estatistica(msg):
-#        texto = "Digite o nome de um jogador após o comando. Ex: `/Estatistica yuurih`"
-#        bot.send_message(msg.chat.id, texto, parse_mode="Markdown")
-
-    # @bot.message_handler(func=lambda m: m.text.startswith('/Estatistica '))
-    # def estat_jogador(msg):
-    #     nome = msg.text.replace("/Estatistica", "").strip().lower()
-    #     stats = get_player_stats(nome)
-    #     bot.send_message(msg.chat.id, stats, parse_mode="Markdown")
+    @bot.message_handler(commands=['stats'])
+    def stats(msg):
+        try:
+            furia_main = fetch_team_stats("furia")
+            furia_fe = fetch_team_stats("furia-fe")
+            furia_academy = fetch_team_stats("furia-academy")
+            
+            text = "*Estatísticas dos jogadores da FURIA (via BO3.gg):*\n\n"
+            text += "*FURIA Main:*\n" + "\n".join(furia_main) + "\n\n"
+            text += "*FURIA Female:*\n" + "\n".join(furia_fe) + "\n\n"
+            text += "*FURIA Academy:*\n" + "\n".join(furia_academy)
+            
+            bot.send_message(msg.chat.id, text, parse_mode="Markdown")
+        except Exception as e:
+            bot.send_message(msg.chat.id, f"Erro ao buscar estatísticas: {e}")
