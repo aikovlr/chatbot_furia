@@ -1,40 +1,54 @@
+from bs4 import BeautifulSoup
 from selenium import webdriver
 from selenium.webdriver.chrome.service import Service
-from selenium.webdriver.common.by import By
 from selenium.webdriver.chrome.options import Options
+from selenium.webdriver.common.by import By
 from selenium.webdriver.support.ui import WebDriverWait
 from selenium.webdriver.support import expected_conditions as EC
 import time
 
 def setup_driver():
     chrome_options = Options()
-    chrome_options.add_argument("--headless")
+    chrome_options.add_argument("--headless=new")
     chrome_options.add_argument("--disable-gpu")
     chrome_options.add_argument("--no-sandbox")
-    chrome_options.add_argument("--disable-dev-shm-usage")
-    service = Service(executable_path="C:\\Users\\Matheus\\Desktop\\Rafael\\fatec\\Estagio\\chromedriver-win64\\chromedriver.exe")  # <-- ajusta aqui
-    driver = webdriver.Chrome(service=service, options=chrome_options)
-    return driver
+    chrome_options.add_argument("--window-size=1920,1080")
+    chrome_options.binary_location = r"C:\\Users\\Matheus\\Desktop\\Rafael\\fatec\\Estagio\\chrome-win64\\chrome.exe"
+
+    service = Service(executable_path=r"C:\\Users\\Matheus\\Desktop\\Rafael\\fatec\\Estagio\\chromedriver-win64\\chromedriver.exe")
+    return webdriver.Chrome(service=service, options=chrome_options)
 
 def fetch_team_stats(team_slug):
-    url = f"https://bo3.gg/teams/{team_slug}/stats"
+    url = f"https://bo3.gg/teams/{team_slug}#tab-stats"
     driver = setup_driver()
     try:
         driver.get(url)
-        WebDriverWait(driver, 15).until(
-            EC.presence_of_element_located((By.CSS_SELECTOR, ".stats-player"))
+
+        WebDriverWait(driver, 20).until(
+            EC.presence_of_element_located((By.CSS_SELECTOR, ".item-button.player"))
         )
-        time.sleep(2)
-        players_elements = driver.find_elements(By.CSS_SELECTOR, ".stats-player")
-        stats = []
-        for player in players_elements:
-            name = player.find_element(By.CSS_SELECTOR, ".name").text.strip()
-            rating = player.find_element(By.CSS_SELECTOR, ".rating").text.strip()
-            kd = player.find_element(By.CSS_SELECTOR, ".kd").text.strip()
-            adr = player.find_element(By.CSS_SELECTOR, ".adr").text.strip()
-            kast = player.find_element(By.CSS_SELECTOR, ".kast").text.strip()
-            stats.append(f"{name}: Rating {rating}, K/D {kd}, ADR {adr}, KAST {kast}")
-        return stats
+        
+        ingame_stats = driver.find_element(By.CSS_SELECTOR, ".o-tab-content .o-layout:not([style*=\"display: none\"])")
+        players = ingame_stats.find_elements(By.CSS_SELECTOR, ".item-button.player")
+        
+        stats_all = []
+        for player in players:
+            try:
+                player.click()
+                time.sleep(1)
+                name = player.text
+
+                table = ingame_stats.find_element(By.CSS_SELECTOR, ".c-table-ingame-stats")
+
+                stats_names = table.find_elements(By.CSS_SELECTOR, ".table-cell.stat")
+                stats_values = table.find_elements(By.CSS_SELECTOR, ".table-cell.avg")
+                
+                player_stats = map(lambda name, stat: f"{name.text} {stat.text}", stats_names, stats_values)
+
+                stats_all.append(f"*{name}*: {", ".join(player_stats)}\n")
+            except Exception as e:
+                stats_all.append(f"Erro ao ler jogador: {e}")
+        return stats_all
     except Exception as e:
         return [f"Erro ao carregar jogadores do time '{team_slug}': {e}"]
     finally:
