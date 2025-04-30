@@ -3,12 +3,16 @@
 Bot do Telegram que fornece informações em tempo real sobre o time competitivo de CS2 da FURIA Esports. Feito com Python, scraping via Selenium, integração com HLTV.org e respostas inteligentes com OpenAI.
 
 ## Funcionalidades
-- /Partidas — Mostra as próximas partidas da FURIA (via HLTV)
-- /Elenco — Exibe o elenco atual e a staff técnica
-- /Estatistica — Retorna estatísticas oficiais dos jogadores via HLTV
-- /Historico — Mostra as últimas 5 partidas jogadas
+
+- /partidas — Mostra as próximas partidas da FURIA (via HLTV)
+- /elenco — Exibe o elenco atual e a staff técnica
+- /estatistica — Retorna estatísticas oficiais dos jogadores via HLTV
+- /historico — Mostra as últimas 5 partidas jogadas
+- /stats - stats dos jogadores da furia.
+- info - Informaçòes sobre a fúria (redes sociais, SAC e etc.)
 
 ## Instalação
+
 ```bash
 git clone https://github.com/seu-usuario/furia-cs-bot.git
 cd furia-cs-bot
@@ -18,13 +22,17 @@ pip install -r requirements.txt
 ```
 
 ## Configuração
+
+Certifique-se de instalar o chromedriver compativel com sua versão do Chrome e selecionar o diretório correto para o scrapper.
 Crie um arquivo `.env` na raiz com suas chaves:
+
 ```
 TELEGRAM_API_KEY=sua_chave
 PANDASCORE_API_KEY=sua_chave
 ```
 
 ## Executar
+
 ```bash
 python main.py
 ```
