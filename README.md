@@ -6,7 +6,6 @@ Bot do Telegram que fornece informações em tempo real sobre o time competitivo
 
 - /partidas — Mostra as próximas partidas da FURIA (via HLTV)
 - /elenco — Exibe o elenco atual e a staff técnica
-- /estatistica — Retorna estatísticas oficiais dos jogadores via HLTV
 - /historico — Mostra as últimas 5 partidas jogadas
 - /stats - stats dos jogadores da furia.
 - info - Informaçòes sobre a fúria (redes sociais, SAC e etc.)

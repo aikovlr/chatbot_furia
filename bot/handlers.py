@@ -139,7 +139,7 @@ def registrar_handlers(bot):
         texto += "https://www.instagram.com/furiagg\n"
         texto += "https://x.com/FURIA\n"
         texto += "https://www.tiktok.com/@furia\n"
-        texto += "\nSite oficial da FURIA:"
+        texto += "\nSite oficial da FURIA LifeStyle:"
         texto += "\nhttps://www.furia.gg/"
                 
         bot.send_message(msg.chat.id, texto)
