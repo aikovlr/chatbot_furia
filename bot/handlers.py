@@ -103,11 +103,10 @@ def registrar_handlers(bot):
 
             texto = "*Estatísticas dos jogadores da Furia (via BO3.gg):*\n\n"
             texto += "\n".join(furia_main) + "\n"
-            texto += "Caso as estatísticas não apareçam, tente executar o comando novamente."
 
             bot.send_message(msg.chat.id, texto, parse_mode="Markdown")
         except Exception as e:
-            bot.send_message(msg.chat.id, "Erro ao buscar estatísticas.")
+            bot.send_message(msg.chat.id, "Erro ao buscar estatísticas. Tente novamente /statsfuria")
             print(e)
 
         bot.send_message(msg.chat.id, "Caso deseje voltar para o inicio, digite ou clique em /inicio.")
@@ -120,11 +119,10 @@ def registrar_handlers(bot):
 
             texto = "*Estatísticas das jogadoras da Furia fe (via BO3.gg):*\n\n"
             texto += "\n".join(furia_fe) + "\n"
-            texto += "Caso as estatísticas não apareçam, tente executar o comando novamente."
 
             bot.send_message(msg.chat.id, texto, parse_mode="Markdown")
         except Exception as e:
-            bot.send_message(msg.chat.id, "Erro ao buscar estatísticas.")
+            bot.send_message(msg.chat.id, "Erro ao buscar estatísticas. Tente novamente /statsfuriafe")
             print(e)
 
         bot.send_message(msg.chat.id,"Caso deseje voltar para o inicio, digite ou clique em /inicio.")
