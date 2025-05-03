@@ -13,9 +13,9 @@ def setup_driver():
     chrome_options.add_argument("--disable-gpu")
     chrome_options.add_argument("--no-sandbox")
     chrome_options.add_argument("--window-size=1920,1080")
-    chrome_options.binary_location = r"C:\\Users\\Matheus\\Desktop\\Rafael\\fatec\\Estagio\\chrome-win64\\chrome.exe"
+    chrome_options.binary_location = CHROMEDRIVER
 
-    service = Service(executable_path=r"C:\\Users\\Matheus\\Desktop\\Rafael\\fatec\\Estagio\\chromedriver-win64\\chromedriver.exe")
+    service = Service(executable_path=CHROMEDRIVER)
     return webdriver.Chrome(service=service, options=chrome_options)
 
 def fetch_team_stats(team_slug):

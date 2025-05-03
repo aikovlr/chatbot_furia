@@ -29,6 +29,7 @@ Crie um arquivo `.env` na raiz com suas chaves:
 ```
 TELEGRAM_API_KEY=sua_chave
 PANDASCORE_API_KEY=sua_chave
+CHROMEDRIVER=diretório_chromedriver.exe
 ```
 
 ## Executar
